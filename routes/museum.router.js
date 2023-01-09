@@ -3,11 +3,11 @@ const { async } = require('rxjs');
 const MuseumServices = require('../services/museum.service');
 const router = express.Router();
 const service = new MuseumServices();
-const verifyToken = require('../middlewares/validator.jwt.handler');
+// const verifyToken = require('../middlewares/validator.jwt.handler');
 
 // Recurso get para obtener los museos desde un Json, tambien se obtienen valores desde query params
 router.get('/',
-  verifyToken,
+  // verifyToken,
   async (req, res, next) => {
     // Forma convencional para obtener el path param a buscar
     // const size = req.query.size;
