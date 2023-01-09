@@ -1,4 +1,4 @@
-var createError = require('http-errors');
+// var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
 var cookieParser = require('cookie-parser');
@@ -8,10 +8,11 @@ var logger = require('morgan');
 // var usersRouter = require('./routes/users');
 
 //Importamos el routerApi
-const routerApi = require('./routes')
+var routerApi = require('./routes')
 //Importamos la configuracion para el JWT
 var config = require('./configs/config');
-
+//Importamos los Middlewares de manejo de errores
+var { logErrors, errorHandler, boomErrorHandler } = require('./middlewares/error.handler');
 
 
 var app = express();
@@ -31,22 +32,33 @@ app.set('key', config.key);
 
 //Asignamos el routerAPI
 routerApi(app);
+//Midlewares para manejo de errores (estos deben ser asigandos despues del router)
+//Es muy importante tambien el orden, ya que se ejecutan de forma secuencia
+app.use(logErrors);
+app.use(boomErrorHandler);
+app.use(errorHandler);
 
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  next(createError(404));
+
+//Levantamos el servidor en el puerto configurado
+app.listen(() => {
+  console.log('Application running ...')
 });
 
-// error handler
-app.use(function(err, req, res, next) {
-  // set locals, only providing error in development
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
+// // catch 404 and forward to error handler
+// app.use(function(req, res, next) {
+//   next(createError(404));
+// });
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render('error');
-});
+// // error handler
+// app.use(function(err, req, res, next) {
+//   // set locals, only providing error in development
+//   res.locals.message = err.message;
+//   res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+//   // render the error page
+//   res.status(err.status || 500);
+//   res.render('error');
+// });
 
 module.exports = app;
