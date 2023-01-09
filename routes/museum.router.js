@@ -3,9 +3,7 @@ const { async } = require('rxjs');
 const MuseumServices = require('../services/museum.service');
 const router = express.Router();
 const service = new MuseumServices();
-const validatorHandler = require('../middlewares/validator.handler');
 const verifyToken = require('../middlewares/validator.jwt.handler');
-const { createMuseumSchema } = require('../schemas/museum.schema');
 
 // Recurso get para obtener los museos desde un Json, tambien se obtienen valores desde query params
 router.get('/',
@@ -22,24 +20,6 @@ router.get('/',
         statusCode: 200,
         message: 'Success transaction',
         data: museums
-      });
-    } catch (error) {
-      next(error);
-    }
-  });
-
-// Recurso post para crear un nuevo museo
-router.post('/',
-  verifyToken,
-  validatorHandler(createMuseumSchema, 'body'),
-  async (req, res, next) => {
-    try {
-      const body = req.body;
-      museumCreated = await service.create(body);
-      res.status(201).json({
-        statusCode: 201,
-        message: "Museum created",
-        data: museumCreated
       });
     } catch (error) {
       next(error);

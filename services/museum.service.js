@@ -1,50 +1,24 @@
-const boom = require('@hapi/boom');
-
 class MuseumServices {
 
-  constructor() {
-    this.museums = [];
-  }
+  constructor() { }
 
   async find(limit, type) {
-    if (this.museums.length == 0) {
-      throw boom.notFound('Museums not found');
+    var listMuseums = [];
+    for (let index = 0; index < limit; index++) {
+      var museum = {
+        name: `Museum Created By API - ${index}`,
+        description: `enim in tempor turpis nec euismod scelerisque quam turpis adipiscing lorem - ${index}`,
+        address: `9212 Packers Hill - ${index}`,
+        city: `Bogota${index}`,
+        image: "https://secretldn.com/wp-content/uploads/2022/01/summer-of-culture-british-museum-1024x606-1-666x394.jpg",
+        isBlocked: false,
+        id: index
+      };
+
+      listMuseums.push(museum);
     }
 
-    let queryType = false;
-    if (type == 'blocked') {
-      queryType = true;
-    }
-
-    if (limit && type) {
-      return this.museums.filter(item => item.isBlocked == queryType).slice(0, limit);
-    }
-
-    if (limit) {
-      return this.museums.slice(0, limit);
-    }
-
-    if (type) {
-      return this.museums.filter(item => item.isBlocked == queryType)
-    }
-
-    return this.museums;
-  }
-
-  async create(museum) {
-    const consecutive = this.museums.length + 1;
-    const existMuseumName = this.museums.find(item => item.name == museum.name);
-    if (existMuseumName) {
-      throw boom.conflict(`The museum with the name [${museum.name}] already exists`);
-    }
-
-    if (!museum.isBlocked) {
-      museum.isBlocked = false;
-    }
-
-    museum.id = consecutive;
-    this.museums.push(museum);
-    return museum;
+    return listMuseums;
   }
 
 }
