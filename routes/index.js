@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-
 const securityRouter = require('./security.router');
 const museumRouter = require('./museum.router');
 

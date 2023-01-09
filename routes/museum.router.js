@@ -2,7 +2,6 @@ const express = require('express');
 const MuseumServices = require('../services/museum.service');
 const router = express.Router();
 const service = new MuseumServices();
-
 const validatorHandler = require('../middlewares/validator.handler');
 const verifyToken = require('../middlewares/validator.jwt.handler');
 const { getMuseumSchema, createMuseumSchema, updateMuseumSchema, generateMuseumsSchema, updateParcialMuseumSchema } = require('../schemas/museum.schema');
