@@ -1,6 +1,6 @@
 // var createError = require('http-errors');
 var express = require('express');
-var path = require('path');
+// var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
@@ -9,6 +9,8 @@ var logger = require('morgan');
 
 //Importamos el routerApi
 var routerApi = require('./routes')
+//Importamos helmet que nos permite habilitar cabeceras
+var helmet = require('helmet')
 //Importamos la configuracion para el JWT
 var config = require('./configs/config');
 //Importamos los Middlewares de manejo de errores
@@ -17,15 +19,19 @@ var { logErrors, errorHandler, boomErrorHandler } = require('./middlewares/error
 
 var app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'jade');
+// // view engine setup
+// app.set('views', path.join(__dirname, 'views'));
+// app.set('view engine', 'jade');
 
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+// app.use(express.static(path.join(__dirname, 'public')));
+
+
+//Hacemos uso de helmet
+app.use(helmet());
 
 //Definimos el key maestro
 app.set('key', config.key);
