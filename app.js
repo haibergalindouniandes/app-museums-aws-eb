@@ -1,6 +1,6 @@
 // var createError = require('http-errors');
 var express = require('express');
-// var path = require('path');
+var path = require('path');
 var cookieParser = require('cookie-parser');
 //Importamos logger morgan
 var logger = require('morgan');
@@ -15,6 +15,10 @@ var { logErrors, errorHandler, boomErrorHandler } = require('./middlewares/error
 
 //Creamos app
 var app = express();
+// view engine setup
+app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'jade');
+app.use(express.static(path.join(__dirname, 'public')));
 //Hacemos uso de logger en dev
 app.use(logger('dev'));
 //Middleware necesario para poder obtener la data que viaja a nuestro servicio en formato json, se debe implementar un middleware de express "express.json()"

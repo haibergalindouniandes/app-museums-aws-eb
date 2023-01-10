@@ -5,6 +5,11 @@ const museumRouter = require('./museum.router');
 
 //Funcion que tiene todos los enrutamientos de la aplicación
 function routerApi(app) {
+  app.use('/', router);
+  /* GET home page. */
+  router.get('/', function (req, res, next) {
+    res.render('index', { title: 'Museums API' });
+  });
   //Agregamos a la app el pattern path del servicio
   app.use('/aws/cloudapp/v1', router);
   //Agregamos los paths de los servicios de museos
