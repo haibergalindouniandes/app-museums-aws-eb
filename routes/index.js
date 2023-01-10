@@ -6,7 +6,7 @@ const museumRouter = require('./museum.router');
 //Funcion que tiene todos los enrutamientos de la aplicación
 function routerApi(app) {
   app.use('/', router);
-  //GET home page.
+  //GET home page
   router.get('/', function (req, res, next) {
     res.render('index', { title: 'Museums API' });
   });
