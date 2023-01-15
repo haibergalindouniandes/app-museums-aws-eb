@@ -1,3 +1,4 @@
+// Importamos dependencias
 const express = require('express');
 const MuseumServices = require('../services/museum.service');
 const router = express.Router();
@@ -6,7 +7,7 @@ const validatorHandler = require('../middlewares/validator.handler');
 const verifyToken = require('../middlewares/validator.jwt.handler');
 const { getMuseumSchema, createMuseumSchema, updateMuseumSchema, generateMuseumsSchema, updateParcialMuseumSchema } = require('../schemas/museum.schema');
 
-// Recurso get para obtener los museos desde un Json, tambien se obtienen valores desde query params
+// Recurso que permite para obtener los museos registrados
 router.get('/',
   verifyToken,
   async (req, res, next) => {
@@ -34,10 +35,11 @@ router.get('/:id',
   async (req, res, next) => {
     // Forma convencional para obtener el path param a buscar
     // const id = req.params.id;
-    // Destructiracion de objetos ecmascript para obtener solo los elementos que necesito
+    // Destructuración de objetos ecmascript para obtener solo los elementos que se necesitan
     try {
       const { id } = req.params;
       const { forceQuery } = req.query;
+
       let museum = await service.findOne(id, forceQuery);
       res.status(200).json({
         statusCode: 200,
@@ -115,7 +117,7 @@ router.patch('/:id',
     try {
       const { id } = req.params;
       const body = req.body;
-      const museumUpdate = await service.parcialUpdate(id, body);
+      const museumUpdate = await service.update(id, body);
       res.status(200).json({
         statusCode: 200,
         message: "Museum updated",
@@ -151,14 +153,12 @@ router.delete('/:id',
       const museumDeleted = await service.deleteOne(id);
       res.status(200).json({
         statusCode: 200,
-        message: `The museum with the id [${museumDeleted}] deleted`
+        message: `The museum with id [${museumDeleted}] successfully deleted`
       });
     } catch (error) {
       next(error);
     }
-
   });
 
-
-
+// Exportamos router
 module.exports = router;

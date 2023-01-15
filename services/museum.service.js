@@ -1,154 +1,125 @@
-const { faker } = require("@faker-js/faker")
+// Importamos faker para generar aleatoriamente nuevos museos
+const { faker } = require('@faker-js/faker')
+// Importamos boom para realizar denifir errores de negocio
 const boom = require('@hapi/boom');
+// Importamos models para obtener la conexion con la bd usando el ORM sequelize
+const { models } = require('../libs/sequelize');
+// Importamos las variables de ambiente
+const { config } = require('../configs/config')
 
 class MuseumServices {
+    // Método constructor
+    constructor() { }
 
-    constructor() {
-        this.museums = [];
-    }
-
+    // Método que permite para obtener los museos registrados
     async find(limit, type) {
-        if (this.museums.length == 0) {
-            throw boom.notFound('Museums not found');
-        }
-
+        // Inicializamos el array de museos
+        var museums = [];
+        // Asignamos el tipo de estatus a consultar del museo
         let queryType = false;
         if (type == 'blocked') {
             queryType = true;
         }
-
+        // Relizamos el filtro de museos
         if (limit && type) {
-            return this.museums.filter(item => item.isBlocked == queryType).slice(0, limit);
+            // Realizamos la busqueda de los museos filtrados por el elemento isBlocked y limite
+            museums = await models.Museum.findAll({ limit: limit, where: { is_bloked: queryType }, order: [['id', config.dbOrderQueries]] });
+        } else if (limit) {
+            // Realizamos la busqueda de los museos filtrados por el limite
+            museums = await models.Museum.findAll({ limit: limit, order: [['id', config.dbOrderQueries]] });
+        } else if (type) {
+            // Realizamos la busqueda de los museos filtrados por el elemento isBlocked
+            museums = await models.Museum.findAll({ where: { is_bloked: queryType }, order: [['id', config.dbOrderQueries]] });
+        } else {
+            // Realizamos la busqueda de los museos registrados en la base de datos
+            museums = await models.Museum.findAll({ order: [['id', config.dbOrderQueries]] });
         }
-
-        if (limit) {
-            return this.museums.slice(0, limit);
+        // Validamos si no hay museos registrados en la base de datos, de ser asi propagamos un error boom
+        if (museums.length == 0) {
+            throw boom.notFound('Museums not found');
         }
-
-        if (type) {
-            return this.museums.filter(item => item.isBlocked == queryType)
-        }
-
-        return this.museums;
+        // Retornamos los museos obtenidos
+        return museums;
     }
 
+    // Método que permite obtener un museo con base al ID
     async findOne(id, forceQuery) {
-        //Inyectamos un error para ver si funciona el Middleware de error
-        //const error = this.museums.error();
-        //Primera forma de retornar un objeto especifico usando filter
-        // return this.museums.filter(function (item) {
-        //   return (item.id == id);
-        // });
-        //Segunda forma de retornar un objeto especifico usando find
-        const museum = this.museums.find(item => String(item.id) == String(id));
-        if (!museum) {
+        /** 
+        // Forma de buscar por un where especifico
+        const museum = await models.Museum.findOne({ where: { id: id } });       
+        */
+        // Realizamos la busqueda del museo por primary key
+        const museum = await models.Museum.findByPk(id);
+        // Validamos si el museo no existe, de ser asi propagamos un error boom
+        if (museum == null) {
             throw boom.notFound(`The museum with the id [${id}] not found`);
         }
+        // Validamos si el museo esta bloqueado, de ser asi propagamos un error boom
         if (!forceQuery || Boolean(forceQuery) == false) {
             if (museum.isBlocked) {
                 throw boom.conflict(`The museum [${museum.name}] is blocked`);
             }
         }
-
+        // Retornamos el museo obtenido
         return museum;
     }
 
+    // Método que permite registrar un nuevo museo
     async create(museum) {
-        const consecutive = this.museums.length + 1;
-        const existMuseumName = this.museums.find(item => item.name == museum.name);
-        if (existMuseumName) {
-            throw boom.conflict(`The museum with the name [${museum.name}] already exists`);
-        }
-
-        if (!museum.isBlocked) {
-            museum.isBlocked = false;
-        }
-
-        museum.id = consecutive;
-        this.museums.push(museum);
-        return museum;
+        // Realizamos el create del museo enviando la informacion de nuestro request
+        const museumCreated = await models.Museum.create(museum);
+        // Retornamos el museo creado
+        return museumCreated;
     }
 
+    // Método que permite generar un numero de museos con datos aleatorios
     async generate(limit) {
-        this.museums = [];
+        // Creamos los museos
         for (let index = 1; index <= limit; index++) {
-            this.museums.push({
-                name: `Museo ${faker.address.country()}`,
+            let museum = {
+                name: `Museo ${faker.address.country()} ${faker.address.cityName()}`,
                 description: faker.lorem.paragraph(),
                 address: faker.address.streetAddress(),
                 city: faker.address.cityName(),
                 image: 'https://www.unesco.org/sites/default/files/2021-09/museums.jpg',
-                isBlocked: faker.datatype.boolean(),
-                id: index
-            });
+                isBlocked: faker.datatype.boolean()
+            };
+            // Realizamos el create del museo
+            await models.Museum.create(museum);
         }
     }
 
+    // Método que permite actualizar un nuevo museo
     async update(id, data) {
-        //Obtenemos el index del museo
-        const indexMuseum = this.museums.findIndex(item => String(item.id) == String(id));
-        //Validamos si existe el museo, de ser asi lo actualizamos
-        if (indexMuseum !== -1) {
-            data.id = id;
-            this.museums[indexMuseum] = data;
-            return this.museums[indexMuseum];
-        } else {
-            throw boom.notFound(`The museum with the id [${id}] not found`);
-        }
+        // Obtenemos el index del museo
+        const museum = await this.findOne(id, true);
+        // Asignamos fecha actual al elemento updateAt
+        data.updateAt = new Date().toISOString();
+        // Realizamos el update del museo obtenido enviando la informacion de nuestro request
+        const museumUpdated = museum.update(data);
+        // Retornamos el museo modificado
+        return museumUpdated;
     }
 
-    async parcialUpdate(id, data) {
-        //Obtenemos el index del museo
-        let indexMuseum = this.museums.findIndex(item => String(item.id) == String(id));
-        //Validamos si no existe el museo
-        if (indexMuseum == -1) {
-            throw boom.notFound(`The museum with the id [${id}] not found`);
-        }
-        //Obtenemos el museo
-        let filteredMuseum = await this.findOne(id, true);
-        //Validamos y actualizamos los parametros que bien en el request
-        if (data.name && data.name.length > 0) {
-            filteredMuseum.name = data.name;
-        }
-        if (data.description && data.description.length > 0) {
-            filteredMuseum.description = data.description;
-        }
-        if (data.address && data.address.length > 0) {
-            filteredMuseum.address = data.address;
-        }
-        if (data.city && data.city.length > 0) {
-            filteredMuseum.city = data.city;
-        }
-        if (data.image && data.image.length > 0) {
-            filteredMuseum.image = data.image
-        }
-        if (String(data.isBlocked).length > 0) {
-            filteredMuseum.isBlocked = data.isBlocked
-        }
-
-        return this.museums[indexMuseum];
-    }
-
+    // Método que permite truncar la tabla museo
     async deleteAll() {
-        //Validamos si hay museos registrados
-        if (this.museums == 0) {
-            throw boom.notFound('Museums not found');
-        }
-        this.museums = [];
+        // Realizamos un truncate de la tabla museum
+        await models.Museum.destroy({ truncate: true, cascade: false });
+        // Retornamos respuesta exitosa
         return true;
     }
 
+    // Método que permite eliminar un museo
     async deleteOne(id) {
-        //Validamos si viene el id por query params
-        //Obtenemos index del museo
-        const indexMuseum = this.museums.findIndex(item => String(item.id) == String(id));
-        //Validamos si el id existe
-        if (indexMuseum == -1) {
-            throw boom.notFound(`The museum with the id [${id}] not found`);
-        }
-        this.museums.splice(indexMuseum, 1);
+        // Obtenemos el index del museo
+        const museum = await this.findOne(id);
+        // Realizamos el delete el museo obtenido
+        await museum.destroy();
+        // Retornamos el id el museo eliminado
         return id;
     }
 
 }
+
+// Exportamos clase
 module.exports = MuseumServices;

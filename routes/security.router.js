@@ -1,3 +1,4 @@
+// Importamos dependencias
 const express = require("express");
 const SecurityServices = require("../services/security.service");
 const router = express.Router();
@@ -11,7 +12,7 @@ router.post('/generate',
     async (req, res, next) => {
         try {
             const body = req.body;
-            const token = service.generateJWT(body);
+            const token = await service.generateJWT(body);
             res.status(200).json({
                 statusCode: 200,
                 message: 'Successful authentication',
@@ -23,4 +24,5 @@ router.post('/generate',
     }
 );
 
+// Exportamos router
 module.exports = router;
