@@ -8,6 +8,8 @@ const logger = require('morgan');
 const routerApi = require('./routes')
 // Importamos helmet que nos permite habilitar cabeceras
 const helmet = require('helmet')
+//Importamos cors que nos va a permitir a solucionar el error de CORS
+const cors = require('cors');
 // Importamos las variables de ambiente
 const { config } = require('./configs/config')
 // Importamos los Middlewares de manejo de errores
@@ -23,6 +25,8 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(logger('dev'));
 // Middleware necesario para poder obtener la data que viaja a nuestro servicio en formato json, se debe implementar un middleware de express "express.json()"
 app.use(express.json());
+//Hacemos uso de cors para habilitar el acceso desde cualquier origen
+app.use(cors());
 // Middleware necesario para poder codificar el payload
 app.use(express.urlencoded({ extended: false }));
 // Middleware necesario para poder obtener y parsear las cookies
